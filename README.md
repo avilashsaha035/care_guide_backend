@@ -1,122 +1,98 @@
-# Secure Note-Taking Application - Backend REST API
+# Secure Note-Taking Platform - Backend REST API
 
-Production-ready REST API built with **Node.js, Express, TypeScript, and MongoDB with Mongoose**.
-
----
-
-## 🛠️ Architecture & Principles
-
-- **SOLID Architecture:**
-  - `controllers/`: Pure HTTP transport layer (reads requests, delegates to services, formats responses).
-  - `services/`: Business logic, transaction management, and database queries.
-  - `models/`: Mongoose schemas with explicit `schema.index()` declarations.
-  - `middleware/`: JWT verification, Role-Based Access Control (`requireRole`), and centralized error handling.
-- **DRY (Don't Repeat Yourself):** Unified pagination math, reusable DTOs, and centralized error handling.
-- **Zero Template Bloat:** Built completely from scratch without heavy boilerplates.
+A production-grade, secure RESTful API built with **Node.js, Express, TypeScript, and MongoDB (via Mongoose)**, engineered to demonstrate clean architectural principles (**SOLID** and **DRY**), Role-Based Access Control (**RBAC**), and high-performance **MongoDB database indexing and aggregation pipelines**.
 
 ---
 
-## 📋 Database Indexing Strategy (`schema.index`)
+## 🛠️ Tech Stack
 
-Adheres strictly to the constraint: *"DO NOT MAKE ANY UNNECESSARY INDEXES. You must use the schema.index method for defining indexes in your code so they are visible during review."*
-
-1. **`User` Schema (`src/models/User.ts`):**
-   - `userSchema.index({ email: 1 }, { unique: true });`
-   - `userSchema.index({ createdAt: -1 });`
-   - `userSchema.index({ interests: 1 });`
-2. **`Note` Schema (`src/models/Note.ts`):**
-   - `noteSchema.index({ userId: 1, createdAt: -1 });` *(Compound Index)*
-   - `noteSchema.index({ createdAt: -1 });`
-3. **`Post` Schema (`src/models/Post.ts`):**
-   - `postSchema.index({ userId: 1, createdAt: -1 });` *(Compound Index)*
+| Component | Technology | Purpose |
+| :--- | :--- | :--- |
+| **Runtime** | Node.js (v18+ / v20+) | Asynchronous JavaScript runtime |
+| **Language** | TypeScript | Strict compile-time typing and data contracts |
+| **Framework** | Express.js | Minimalist, unopinionated REST API framework |
+| **Database & ODM** | MongoDB + Mongoose | Document database with explicit `schema.index()` optimization |
+| **Authentication** | JSON Web Tokens (`jsonwebtoken`) | Stateless Bearer token authentication |
+| **Password Hashing** | `bcryptjs` | Salted one-way hashing for secure password storage |
+| **Architecture** | SOLID Service-Controller Pattern | Separation of concerns, testability, and maintainability |
 
 ---
 
-## 📊 Aggregation Scenarios
+## 💻 Step-by-Step Instructions: Clone to Local Run
 
-### Scenario 1: Group by Interests
-- **Constraint:** Exactly one `collection.aggregate()` call.
-- **Implementation:** `src/services/aggregationService.ts` -> `getGroupedByInterests()`
-```typescript
-User.aggregate([
-  { $unwind: '$interests' },
-  {
-    $group: {
-      _id: '$interests',
-      interest: { $first: '$interests' },
-      count: { $sum: 1 },
-      users: {
-        $push: { _id: '$_id', name: '$name', email: '$email', role: '$role' }
-      }
-    }
-  },
-  { $sort: { count: -1, _id: 1 } }
-]);
+Follow these steps to clone the repository and run the backend server on your local computer.
+
+### Prerequisites
+Ensure you have installed on your computer:
+1. **Node.js** (v18.x or v20.x or higher) — [Download Node.js](https://nodejs.org/)
+2. **Git** — [Download Git](https://git-scm.com/)
+
+---
+
+### Step 1: Clone the GitHub Repository
+Open your terminal (PowerShell, Command Prompt, or Terminal) and run:
+
+```bash
+git clone <YOUR_GITHUB_REPOSITORY_URL>
+cd care_guide
 ```
+*(Replace `<YOUR_GITHUB_REPOSITORY_URL>` with your actual repository URL)*
 
-### Scenario 2: User Posts ($lookup)
-- **Constraint:** Single aggregation pipeline with a `$lookup` stage.
-- **Implementation:** `src/services/aggregationService.ts` -> `getUserPostsWithLookup(userId)`
-```typescript
-User.aggregate([
-  { $match: { _id: new mongoose.Types.ObjectId(userId) } },
-  {
-    $lookup: {
-      from: 'posts',
-      localField: '_id',
-      foreignField: 'userId',
-      as: 'posts'
-    }
-  },
-  {
-    $project: {
-      _id: 1,
-      name: 1,
-      email: 1,
-      interests: 1,
-      posts: 1,
-      postCount: { $size: '$posts' }
-    }
-  }
-]);
+---
+
+### Step 2: Navigate to the Backend Directory
+```bash
+cd backend
 ```
 
 ---
 
-## 🚀 Getting Started
-
-### 1. Install Dependencies
+### Step 3: Install Dependencies
 ```bash
 npm install
 ```
 
-### 2. Configure Environment (`.env`)
-Create or edit `.env`:
+---
+
+### Step 4: Configure Environment Variables
+A `.env` file is already included. If you need to verify or recreate it, create a file named `.env` inside the `backend/` directory with the following content:
+
 ```env
 PORT=5000
-MONGODB_URI=mongodb://localhost:27017/notes
-JWT_SECRET=super_secure_jwt_secret_key_2026_note_taking_app
+MONGODB_URI=mongodb+srv://<username>:<password>@cluster0.xstnmhg.mongodb.net/notes?retryWrites=true&w=majority
+JWT_SECRET=<jwt_secret>
 JWT_EXPIRES_IN=7d
 NODE_ENV=development
 ```
-*(Supports local MongoDB or MongoDB Atlas. If no MongoDB is reachable, the server automatically starts an in-memory MongoDB runner).*
+---
 
-### 3. Available Scripts
+### Step 5: Start the Backend Server
+
 ```bash
-# Start development server with live reload
+# Start in development mode with hot-reloading:
 npm run dev
 
-# Compile TypeScript to JavaScript (dist/)
+# Or build TypeScript and start production server:
 npm run build
-
-# Start production server
 npm start
 ```
 
 ---
 
-## 🔑 Default Seed Accounts
+### Step 6: Verify Backend is Running
 
-- **Admin:** `admin@mail.com` | `password`
-- **User:** `user@mail.com` | `password`
-- **User 2:** `alex@mail.com` | `password`
+The API is now running live at: **`http://localhost:5000`**
+
+---
+
+## 🔑 Demo Seed Accounts
+
+The database automatically seeds on first launch:
+
+| Role | Email | Password | Privileges |
+| :--- | :--- | :--- | :--- |
+| **System Admin** | `admin@mail.com` | `password` | Manage users, view all notes across all users, test aggregations |
+| **Standard User** | `user@mail.com` | `password` | Manage personal notes only (RBAC restricted) |
+| **User 2** | `avilash@mail.com` | `password` | Additional user profile with unique interests |
+
+---
