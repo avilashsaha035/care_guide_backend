@@ -10,12 +10,11 @@ export const connectDB = async (): Promise<void> => {
 
   if (configuredUri && configuredUri.trim() !== '') {
     try {
-      console.log(`📡 Connecting to configured MongoDB: ${configuredUri}...`);
+      console.log(`📡 Connecting to configured MongoDB: ${configuredUri.replace(/:([^:@]+)@/, ':****@')}...`);
       await mongoose.connect(configuredUri, {
-        serverSelectionTimeoutMS: 3000, // Quick fail if local MongoDB service is not started
+        serverSelectionTimeoutMS: 10000,
       });
-      console.log(`✅ Successfully connected to MongoDB!`);
-      console.log(`📊 You can open MongoDB Compass and connect using: ${configuredUri}`);
+      console.log(`✅ Successfully connected to MongoDB Atlas!`);
       return;
     } catch (err: any) {
       console.warn(`⚠️ Could not connect to configured MongoDB (${configuredUri}): ${err.message}`);
