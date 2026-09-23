@@ -35,8 +35,8 @@ export const seedDatabase = async (): Promise<void> => {
     });
 
     const user2 = await User.create({
-      name: 'Alex Johnson',
-      email: 'alex@mail.com',
+      name: 'Avilash Saha',
+      email: 'avilash@mail.com',
       password: passwordHash,
       role: 'user',
       interests: ['reading', 'chess', 'travel'],
@@ -88,7 +88,7 @@ export const seedDatabase = async (): Promise<void> => {
     console.log('✅ Demo data seeded successfully:');
     console.log('   Admin: admin@mail.com / password');
     console.log('   User:  user@mail.com  / password');
-    console.log('   User:  alex@mail.com  / password');
+    console.log('   User:  avilash@mail.com  / password');
   } catch (error) {
     console.error('❌ Failed to seed database:', error);
   }
