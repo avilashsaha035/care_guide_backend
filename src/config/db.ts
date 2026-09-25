@@ -1,5 +1,13 @@
 import mongoose from 'mongoose';
 import { MongoMemoryServer } from 'mongodb-memory-server';
+import dns from 'dns';
+
+// Fix for Windows / ISP DNS resolution issues with MongoDB Atlas SRV records (querySrv ECONNREFUSED)
+try {
+  dns.setServers(['8.8.8.8', '8.8.4.4', '1.1.1.1']);
+} catch {
+  // Ignore in environments where setting DNS servers is restricted
+}
 
 let mongoMemoryServer: MongoMemoryServer | null = null;
 
@@ -12,7 +20,8 @@ export const connectDB = async (): Promise<void> => {
     try {
       console.log(`📡 Connecting to configured MongoDB: ${configuredUri.replace(/:([^:@]+)@/, ':****@')}...`);
       await mongoose.connect(configuredUri, {
-        serverSelectionTimeoutMS: 10000,
+        serverSelectionTimeoutMS: 30000,
+        connectTimeoutMS: 10000,
       });
       console.log(`✅ Successfully connected to MongoDB Atlas!`);
       return;
